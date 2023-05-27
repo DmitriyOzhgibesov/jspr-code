@@ -2,24 +2,38 @@ package ru.netology.repository;
 
 import ru.netology.model.Post;
 
-import java.util.Collections;
-import java.util.List;
-import java.util.Optional;
+import java.util.*;
 
 // Stub
 public class PostRepository {
-  public List<Post> all() {
-    return Collections.emptyList();
-  }
+    private HashMap<Long, Post> repositoryDB = new HashMap<>();
 
-  public Optional<Post> getById(long id) {
-    return Optional.empty();
-  }
+    public List<Post> all() {
+        Collection<Post> posts;
+        synchronized (repositoryDB) {
+            posts = repositoryDB.values();
+        }
+        return new ArrayList<>(posts);
+    }
 
-  public Post save(Post post) {
-    return post;
-  }
+    public Optional<Post> getById(long id) {
+        if (repositoryDB.containsKey(id)){
+            return Optional.ofNullable(repositoryDB.get(id));
+        }
 
-  public void removeById(long id) {
-  }
+        return Optional.empty();
+    }
+
+    public Post save(Post post) {
+        synchronized (repositoryDB) {
+            repositoryDB.put(post.getId(), post);
+        }
+        return post;
+    }
+
+    public void removeById(long id) {
+        synchronized (repositoryDB) {
+            repositoryDB.remove(id);
+        }
+    }
 }
