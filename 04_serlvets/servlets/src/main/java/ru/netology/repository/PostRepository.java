@@ -17,7 +17,7 @@ public class PostRepository {
     }
 
     public Optional<Post> getById(long id) {
-        if (repositoryDB.containsKey(id)){
+        if (repositoryDB.containsKey(id)) {
             return Optional.ofNullable(repositoryDB.get(id));
         }
 
@@ -26,7 +26,11 @@ public class PostRepository {
 
     public Post save(Post post) {
         synchronized (repositoryDB) {
-            repositoryDB.put(post.getId(), post);
+            if (post.getId() <= 0) {
+                return null;
+            } else {
+                repositoryDB.put(post.getId(), post);
+            }
         }
         return post;
     }
