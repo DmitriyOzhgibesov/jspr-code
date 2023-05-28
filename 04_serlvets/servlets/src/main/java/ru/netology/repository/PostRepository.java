@@ -3,10 +3,12 @@ package ru.netology.repository;
 import ru.netology.model.Post;
 
 import java.util.*;
+import java.util.concurrent.atomic.AtomicLong;
 
 // Stub
 public class PostRepository {
     private HashMap<Long, Post> repositoryDB = new HashMap<>();
+    private final AtomicLong idCounter = new AtomicLong(0);
 
     public List<Post> all() {
         Collection<Post> posts;
@@ -26,8 +28,10 @@ public class PostRepository {
 
     public Post save(Post post) {
         synchronized (repositoryDB) {
-            if (post.getId() <= 0) {
-                return null;
+            if (post.getId() == 0) {
+                Long postId = idCounter.addAndGet(1);
+                post.setId(postId);
+                repositoryDB.put(postId, post);
             } else {
                 repositoryDB.put(post.getId(), post);
             }

@@ -13,7 +13,7 @@ public class MainServlet extends HttpServlet {
     private PostController controller;
     private final String GET = "GET";
     private final String POST = "POST";
-    private final String DELETE = "POST";
+    private final String DELETE = "DELETE";
     private final String PATHWITHOUTID = "/api/posts";
     private final String PATHWITHID = "/api/posts/\\d+";
 
