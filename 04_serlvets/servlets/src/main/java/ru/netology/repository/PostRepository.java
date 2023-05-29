@@ -6,7 +6,6 @@ import ru.netology.model.Post;
 import java.util.*;
 import java.util.concurrent.atomic.AtomicLong;
 
-@Repository
 public class PostRepository {
     private HashMap<Long, Post> repositoryDB = new HashMap<>();
     private final AtomicLong idCounter = new AtomicLong(0);
