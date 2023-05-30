@@ -7,14 +7,12 @@ import java.util.concurrent.atomic.AtomicLong;
 
 // Stub
 public class PostRepository {
-    private HashMap<Long, Post> repositoryDB = new HashMap<>();
+    private final HashMap<Long, Post> repositoryDB = new HashMap<>();
     private final AtomicLong idCounter = new AtomicLong(0);
 
     public List<Post> all() {
         Collection<Post> posts;
-        synchronized (repositoryDB) {
-            posts = repositoryDB.values();
-        }
+        posts = repositoryDB.values();
         return new ArrayList<>(posts);
     }
 
@@ -27,21 +25,19 @@ public class PostRepository {
     }
 
     public Post save(Post post) {
-        synchronized (repositoryDB) {
-            if (post.getId() == 0) {
-                Long postId = idCounter.addAndGet(1);
-                post.setId(postId);
-                repositoryDB.put(postId, post);
-            } else {
-                repositoryDB.put(post.getId(), post);
-            }
+
+        if (post.getId() == 0) {
+            Long postId = idCounter.addAndGet(1);
+            post.setId(postId);
+            repositoryDB.put(postId, post);
+        } else {
+            repositoryDB.put(post.getId(), post);
         }
+
         return post;
     }
 
     public void removeById(long id) {
-        synchronized (repositoryDB) {
-            repositoryDB.remove(id);
-        }
+        repositoryDB.remove(id);
     }
 }
