@@ -1,14 +1,14 @@
 package ru.netology.servlet;
 
-import org.springframework.context.annotation.AnnotationConfigApplicationContext;
-import ru.netology.config.JavaConfig;
+import org.apache.catalina.LifecycleException;
+import org.apache.catalina.connector.Connector;
+import org.apache.catalina.startup.Tomcat;
 import ru.netology.controller.PostController;
-import ru.netology.service.PostService;
 
 import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
 import java.io.IOException;
+import java.nio.file.Files;
+import java.nio.file.Path;
 
 public class MainServlet extends HttpServlet {
     private PostController controller;
@@ -20,43 +20,28 @@ public class MainServlet extends HttpServlet {
 
     @Override
     public void init() {
-        final var context = new AnnotationConfigApplicationContext(JavaConfig.class);
-        final var controller = context.getBean("postController");
-        final var service = context.getBean(PostService.class);
-        final var isSame = service == context.getBean("postService");
-    }
-
-    @Override
-    protected void service(HttpServletRequest req, HttpServletResponse resp) throws IOException {
-        // если деплоились в root context, то достаточно этого
+        final var tomcat = new Tomcat();
+        final Path baseDir;
         try {
-            final var path = req.getRequestURI();
-            final var method = req.getMethod();
-            // primitive routing
-            if (method.equals(GET) && path.equals(PATHWITHOUTID)) {
-                controller.all(resp);
-                return;
-            }
-            if (method.equals(GET) && path.matches(PATHWITHID)) {
-                // easy way
-                final var id = Long.parseLong(path.substring(path.lastIndexOf("/") + 1));
-                controller.getById(id, resp);
-                return;
-            }
-            if (method.equals(POST) && path.equals(PATHWITHOUTID)) {
-                controller.save(req.getReader(), resp);
-                return;
-            }
-            if (method.equals(DELETE) && path.matches(PATHWITHID)) {
-                // easy way
-                final var id = Long.parseLong(path.substring(path.lastIndexOf("/") + 1));
-                controller.removeById(id, resp);
-                return;
-            }
-            resp.setStatus(HttpServletResponse.SC_NOT_FOUND);
-        } catch (Exception e) {
-            e.printStackTrace();
-            resp.setStatus(HttpServletResponse.SC_INTERNAL_SERVER_ERROR);
+            baseDir = Files.createTempDirectory("tomcat");
+        } catch (IOException e) {
+            throw new RuntimeException(e);
         }
+        baseDir.toFile().deleteOnExit();
+        tomcat.setBaseDir(baseDir.toAbsolutePath().toString());
+
+        final var connector = new Connector();
+        connector.setPort(9999);
+        tomcat.setConnector(connector);
+
+        tomcat.getHost().setAppBase(".");
+        tomcat.addWebapp("", ".");
+
+        try {
+            tomcat.start();
+        } catch (LifecycleException e) {
+            throw new RuntimeException(e);
+        }
+        tomcat.getServer().await();
     }
 }
